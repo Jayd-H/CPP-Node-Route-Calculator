@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Navigation.cpp" />
+    <ClCompile Include="utility.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Navigation.h" />
+    <ClInclude Include="utility.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Input_Files">
+      <UniqueIdentifier>{fc9c3f89-d8d3-4ac7-bf7a-11c84028130c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Commands.txt">
+      <Filter>Input_Files</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Links.csv">
+      <Filter>Input_Files</Filter>
+    </None>
+    <None Include="Places.csv">
+      <Filter>Input_Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>
