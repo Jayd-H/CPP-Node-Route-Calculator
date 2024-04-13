@@ -36,9 +36,8 @@ int main(int, char**) {
 		std::string command;
 		std::getline(fin, command);
 
-		start = high_resolution_clock::now();
+		const auto start = high_resolution_clock::now();
 		if (nav.ProcessCommand(command)) {
-			const auto start = high_resolution_clock::now();
 			std::cout << command << std::fixed << std::setprecision(1) << " - " 
 				<< duration_cast<microseconds>(high_resolution_clock::now() - start).count()
 				<< " microseconds" << std::endl;
@@ -47,4 +46,6 @@ int main(int, char**) {
 			std::cout << "\n*** Error *** " << command << std::endl;
 		}
 	}
+
+	std::cin.get();
 }
