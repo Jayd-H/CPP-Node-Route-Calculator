@@ -15,6 +15,8 @@ enum class TransportMode { Foot = 0, Bike = 1, Car = 2, Bus = 3, Rail = 4, Ship 
 
 class Node;
 
+// arc struct
+// it is a struct as it does not need any member functions
 struct Arc {
     const Node* endNode;
     double distance;
@@ -44,6 +46,7 @@ struct Arc {
     ~Arc() = default;
 };
 
+// node class
 class Node final {
 private:
     std::unordered_map<const Node*, Arc> m_neighbours;
@@ -53,6 +56,7 @@ private:
     const int m_reference;
 
 public:
+	// constructor
     Node(int ref, const std::string& name, double x, double y)
         : m_neighbours(),
         m_name(name),
@@ -60,13 +64,16 @@ public:
         m_y(y),
         m_reference(ref) {}
 
+	// destructor
     Node(const Node&) = delete;
     Node& operator=(const Node&) = delete;
 
+	// method to add neighbour to node with distance and transport mode
     void AddNeighbour(const Node* neighbour, double distance, TransportMode mode) {
         m_neighbours[neighbour] = Arc(neighbour, distance, mode);
     }
 
+    // getters
     int GetReference() const { return m_reference; }
     double GetX() const { return m_x; }
     double GetY() const { return m_y; }
@@ -77,28 +84,36 @@ public:
 	// ignore parasoft warnings
 };
 
+// navigation class
+// this class will be used to build the network and process commands
 class Navigation final {
 private:
+	// member variables
     std::ofstream m_outFile;
     std::unordered_map<int, Node*> m_nodes;
 
 public:
+	// constructor and destructor
     Navigation();
     ~Navigation();
 
     Navigation(const Navigation&) = delete;
     Navigation& operator=(const Navigation&) = delete;
 
+	// member functions
     bool BuildNetwork(const std::string& fileNamePlaces, const std::string& fileNameLinks);
     bool ProcessCommand(const std::string& commandString);
 
+	// getters
     // ignore parasoft warnings
     const std::unordered_map<int, Node*>& GetNodes() const { return m_nodes; }
     const std::ofstream& GetOutFile() const { return m_outFile; }
 	// ignore parasoft warnings
 
 private:
-    TransportMode StringToTransportMode(const std::string& modeStr) const {
+	// member functions
+	// method to convert string from links csv to transport mode enum value
+    inline TransportMode StringToTransportMode(const std::string& modeStr) const {
         if (modeStr == "Foot")
             return TransportMode::Foot;
         else if (modeStr == "Bike")
@@ -115,13 +130,16 @@ private:
             return TransportMode::Foot;
     }
 
-    double CalculateDistance(const Node* startNode, const Node* endNode) const {
+	// method to calculate squared distance between two nodes
+	// REMEMBER TO SQUARE ROOT THE RETURN VALUE
+    inline double CalculateDistance(const Node* startNode, const Node* endNode) const {
         const double dx = endNode->GetX() - startNode->GetX();
         const double dy = endNode->GetY() - startNode->GetY();
         return dx * dx + dy * dy;
     }
 
-    bool IsValidMode(TransportMode mode, TransportMode neighbourMode) const {
+	// method to check if the mode is valid for the check methods
+    inline bool IsValidMode(TransportMode mode, TransportMode neighbourMode) const {
         if (mode == TransportMode::Rail || mode == TransportMode::Ship) {
             return mode == neighbourMode;
         }
@@ -139,6 +157,7 @@ private:
         }
     }
 
+	// member functions
     void FindMaxDist();
     void FindMaxLink();
     void FindDist(int startRef, int endRef);
