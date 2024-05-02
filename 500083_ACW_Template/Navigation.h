@@ -54,22 +54,20 @@ public:
 
 private:
     inline TransportMode StringToTransportMode(const std::string& modeStr) {
-        static const std::unordered_map<std::string, TransportMode> modeMap = {
-            {"Foot", Foot},
-            {"Bike", Bike},
-            {"Car", Car},
-            {"Bus", Bus},
-            {"Rail", Rail},
-            {"Ship", Ship}
-        };
-
-        auto it = modeMap.find(modeStr);
-        if (it != modeMap.end()) {
-            return it->second;
-        }
-        else {
+        if (modeStr == "Foot")
+            return Foot;
+        else if (modeStr == "Bike")
+            return Bike;
+        else if (modeStr == "Car")
+            return Car;
+        else if (modeStr == "Bus")
+            return Bus;
+        else if (modeStr == "Rail")
+            return Rail;
+        else if (modeStr == "Ship")
+            return Ship;
+        else
             return Foot; // Default mode
-        }
     }
 
 	// THIS CALCULATES SQUARED DISTANCE, WHEN DISPLAYING DISTANCE, USE SQRT
