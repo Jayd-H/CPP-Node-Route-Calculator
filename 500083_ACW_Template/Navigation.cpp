@@ -13,14 +13,9 @@
 
 
 Navigation::Navigation() : _outFile("Output.txt") {
-    // Constructor body
-    // Initialize any member variables if needed
 }
 
 Navigation::~Navigation() {
-    // Destructor body
-    // Clean up any dynamically allocated memory
-
     // Iterate through the nodes map and delete each Node object
     for (auto& pair : nodes) {
         delete pair.second;
@@ -29,27 +24,30 @@ Navigation::~Navigation() {
 }
 
 bool Navigation::ProcessCommand(const std::string& commandString) {
-    std::istringstream inString(commandString);
+    static std::istringstream inString;
+    inString.clear();
+    inString.str(commandString);
+
     std::string command;
     inString >> command;
 
-    if (command == "MaxDist") {
+    if (command.compare("MaxDist") == 0) {
         FindMaxDist();
     }
-    else if (command == "MaxLink") {
+    else if (command.compare("MaxLink") == 0) {
         FindMaxLink();
     }
-    else if (command == "FindDist") {
+    else if (command.compare("FindDist") == 0) {
         int startRef, endRef;
         inString >> startRef >> endRef;
         FindDist(startRef, endRef);
     }
-    else if (command == "FindNeighbour") {
+    else if (command.compare("FindNeighbour") == 0) {
         int nodeRef;
         inString >> nodeRef;
         FindNeighbour(nodeRef);
     }
-    else if (command == "Check") {
+    else if (command.compare("Check") == 0) {
         std::string modeStr;
         std::vector<int> nodeRefs;
         inString >> modeStr;
@@ -59,13 +57,13 @@ bool Navigation::ProcessCommand(const std::string& commandString) {
         }
         CheckRoute(modeStr, nodeRefs);
     }
-    else if (command == "FindRoute") {
+    else if (command.compare("FindRoute") == 0) {
         std::string modeStr;
         int startRef, endRef;
         inString >> modeStr >> startRef >> endRef;
         FindRoute(modeStr, startRef, endRef);
     }
-    else if (command == "FindShortestRoute") {
+    else if (command.compare("FindShortestRoute") == 0) {
         std::string modeStr;
         int startRef, endRef;
         inString >> modeStr >> startRef >> endRef;
@@ -117,9 +115,7 @@ bool Navigation::BuildNetwork(const std::string& fileNamePlaces, const std::stri
         Node* startNode = nodes[startRef];
         Node* endNode = nodes[endRef];
         TransportMode mode = StringToTransportMode(modeStr);
-
         double distance = CalculateDistance(startNode, endNode);
-
         startNode->Addneighbour(endNode, distance, mode);
         endNode->Addneighbour(startNode, distance, mode);
     }
@@ -128,37 +124,40 @@ bool Navigation::BuildNetwork(const std::string& fileNamePlaces, const std::stri
 }
 
 void Navigation::FindMaxDist() {
-    double maxDistance = 0.0;
+    double maxSquaredDistance = 0.0;
     Node* maxStartNode = nullptr;
     Node* maxEndNode = nullptr;
 
-    // iterate through all pairs of nodes
-    for (const auto& startPair : nodes) {
-        Node* startNode = startPair.second;
+    // iterate through all nodes
+    auto current = nodes.begin();
+    while (current != nodes.end()) {
+        Node* startNode = current->second;
+        auto next = std::next(current);
 
-        for (const auto& endPair : nodes) {
-            Node* endNode = endPair.second;
-
-            // skip the same node
-            if (startNode == endNode)
-                continue;
+        // calculate distance to all other nodes that come after the current node
+        while (next != nodes.end()) {
+            Node* endNode = next->second;
 
             // calculate the squared distance between the nodes
-            double distance = CalculateDistance(startNode, endNode);
+            double squaredDistance = CalculateDistance(startNode, endNode);
 
-            // update the maximum distance and nodes if necessary
-            if (distance > maxDistance) {
-                maxDistance = distance;
+            // update the maximum squared distance and nodes
+            if (squaredDistance > maxSquaredDistance) {
+                maxSquaredDistance = squaredDistance;
                 maxStartNode = startNode;
                 maxEndNode = endNode;
             }
+
+            ++next;
         }
+
+        ++current;
     }
 
     // output
     if (maxStartNode != nullptr && maxEndNode != nullptr) {
         _outFile << "MaxDist" << std::endl;
-        _outFile << maxStartNode->name << "," << maxEndNode->name << "," << std::fixed << std::setprecision(3) << sqrt(maxDistance) << std::endl;
+        _outFile << maxStartNode->name << "," << maxEndNode->name << "," << std::fixed << std::setprecision(3) << sqrt(maxSquaredDistance) << std::endl;
         _outFile << std::endl;
     }
 }
