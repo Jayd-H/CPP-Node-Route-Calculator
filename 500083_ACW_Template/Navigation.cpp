@@ -138,8 +138,6 @@ bool Navigation::BuildNetwork(const std::string& fileNamePlaces, const std::stri
     return true;
 }
 
-// COME BACK TO THIS
-// 
 // method to calculate the maximum distance between two nodes
 // it iterates through every pair of nodes and calculates the distance between them
 // it stores the maximum distance and the nodes that have this distance
@@ -177,16 +175,13 @@ void Navigation::FindMaxDist() {
 
     // output
     if (maxStartNode != nullptr && maxEndNode != nullptr) {
-        m_outFile << "MaxDist" << std::endl;
-        m_outFile << maxStartNode->GetName() << "," << maxEndNode->GetName() << "," << std::fixed << std::setprecision(3) << sqrt(maxSquaredDistance) << std::endl;
-        m_outFile << std::endl;
+        m_outFile << "MaxDist" << "\n";
+        m_outFile << maxStartNode->GetName() << "," << maxEndNode->GetName() << "," << std::fixed << std::setprecision(3) << sqrt(maxSquaredDistance) << '\n' << '\n';
     }
 }
 
 // method to calculate the maximum link between two nodes
 // it iterates through every pair of neighboured nodes to calculate distance between
-// WOULD IT BE FASTER TO FIND THE ARC WITH THE LONGEST DISTANCE AND USE THAT INSTEAD?
-// COME BACK TO THIS
 void Navigation::FindMaxLink() {
     double maxSquaredDistance = 0.0;
     int maxStartRef = 0;
@@ -209,9 +204,9 @@ void Navigation::FindMaxLink() {
     }
 
     // output
-    m_outFile << "MaxLink" << std::endl;
-    m_outFile << maxStartRef << "," << maxEndRef << "," << std::fixed << std::setprecision(3) << sqrt(maxSquaredDistance) << std::endl;
-    m_outFile << std::endl;
+    m_outFile << "MaxLink" << "\n";
+    m_outFile << maxStartRef << "," << maxEndRef << "," << std::fixed << std::setprecision(3) << sqrt(maxSquaredDistance) << "\n";
+    m_outFile << "\n";
 }
 
 // method to find the distance between two nodes
@@ -231,29 +226,25 @@ void Navigation::FindDist(int startRef, int endRef) {
         endNode = endIter->second;
     }
 
-    // Output the result
-    m_outFile << "FindDist " << startRef << " " << endRef << std::endl;
-
-
-	// would it be faster to find the arc between the two nodes and use that distance instead of calculating it again?
-    // COME BACK TO THIS
+    // output the result
+    m_outFile << "FindDist " << startRef << " " << endRef << "\n";
 
     if (startNode != nullptr && endNode != nullptr) {
         const double distance = CalculateDistance(startNode, endNode);
-        m_outFile << startNode->GetName() << "," << endNode->GetName() << "," << std::fixed << std::setprecision(3) << sqrt(distance) << std::endl;
+        m_outFile << startNode->GetName() << "," << endNode->GetName() << "," << std::fixed << std::setprecision(3) << sqrt(distance) << "\n";
     }
     else {
-        m_outFile << "ERROR: Invalid node reference(s)" << std::endl;
+        m_outFile << "ERROR: Invalid node reference(s)" << "\n";
     }
 
-    m_outFile << std::endl;
+    m_outFile << "\n";
 }
 
 // method to find all the neighbours of a node
 // it takes the reference to find the node in the map
 // then outputs the references of all neighbouring nodes
 void Navigation::FindNeighbour(int nodeRef) {
-    m_outFile << "FindNeighbour " << nodeRef << std::endl;
+    m_outFile << "FindNeighbour " << nodeRef << "\n";
 
     // find the node based on its reference
     const auto iter = m_nodes.find(nodeRef);
@@ -263,14 +254,14 @@ void Navigation::FindNeighbour(int nodeRef) {
         // output the references of all neighboring nodes
         for (const auto& pair : node->GetNeighbours()) {
             const Node* const neighbour = pair.first;
-            m_outFile << neighbour->GetReference() << std::endl;
+            m_outFile << neighbour->GetReference() << "\n";
         }
     }
     else {
-        m_outFile << "ERROR: Invalid node reference" << std::endl;
+        m_outFile << "ERROR: Invalid node reference" << "\n";
     }
 
-    m_outFile << std::endl;
+    m_outFile << "\n";
 }
 
 // method to check if a route is valid between multiple nodes with a given transport mode
@@ -283,7 +274,7 @@ void Navigation::CheckRoute(const std::string& modeStr, const std::vector<int>& 
     for (const int ref : nodeRefs) {
         m_outFile << " " << ref;
     }
-    m_outFile << std::endl;
+    m_outFile << "\n";
 
     const TransportMode mode = StringToTransportMode(modeStr);
     bool routeValid = true;
@@ -307,23 +298,28 @@ void Navigation::CheckRoute(const std::string& modeStr, const std::vector<int>& 
             if (arcIter != neighbours.end()) {
                 const TransportMode arcMode = arcIter->second.mode;
                 if (IsValidMode(mode, arcMode)) {
-                    m_outFile << startRef << "," << endRef << ",PASS" << std::endl;
+                    m_outFile << startRef << "," << endRef << ",PASS" << "\n";
                     continue;
                 }
             }
         }
 
         // if the connection is invalid or nodes are not found
-        m_outFile << startRef << "," << endRef << ",FAIL" << std::endl;
+        m_outFile << startRef << "," << endRef << ",FAIL" << "\n";
         routeValid = false;
         break;
     }
 
-    m_outFile << std::endl;
+    m_outFile << "\n";
 }
 
+// method to find a route between two nodes using DFS
+// it takes the mode and the references of the start and end nodes
+// it then uses a queue to store nodes and iterates through them to find a valid route
+// if a valid route is found it outputs the references of the nodes
+// otherwise it outputs FAIL
 void Navigation::FindRoute(const std::string& modeStr, int startRef, int endRef) {
-    m_outFile << "FindRoute " << modeStr << " " << startRef << " " << endRef << std::endl;
+    m_outFile << "FindRoute " << modeStr << " " << startRef << " " << endRef << "\n";
 
     const TransportMode mode = StringToTransportMode(modeStr);
 
@@ -337,56 +333,55 @@ void Navigation::FindRoute(const std::string& modeStr, int startRef, int endRef)
 
         std::unordered_set<const Node*> visited;
         std::vector<int> route;
+        std::queue<const Node*> queue;
 
-        const bool found = FindRouteHelper(startNode, endNode, mode, visited, route);
+        queue.push(startNode);
+        visited.insert(startNode);
 
-        if (found) {
-            for (const int ref : route) {
-                m_outFile << ref << std::endl;
+        while (!queue.empty()) {
+            const Node* currentNode = queue.front();
+            queue.pop();
+
+            route.push_back(currentNode->GetReference());
+
+            if (currentNode == endNode) {
+                // Found a valid route
+                for (const int ref : route) {
+                    m_outFile << ref << "\n";
+                }
+                m_outFile << "\n";
+                return;
             }
-            m_outFile << std::endl;
+
+            for (const auto& pair : currentNode->GetNeighbours()) {
+                const Node* const neighbour = pair.first;
+                const TransportMode arcMode = pair.second.mode;
+
+                if (visited.count(neighbour) == 0 && IsValidMode(mode, arcMode)) {
+                    queue.push(neighbour);
+                    visited.insert(neighbour);
+                }
+            }
         }
-        else {
-            m_outFile << "FAIL" << std::endl;
-            m_outFile << std::endl;
-        }
+
+        // No valid route found
+        m_outFile << "FAIL" << "\n";
+        m_outFile << "\n";
     }
     else {
-        m_outFile << "FAIL" << std::endl;
-        m_outFile << std::endl;
+        m_outFile << "FAIL" << "\n";
+        m_outFile << "\n";
     }
 }
 
-bool Navigation::FindRouteHelper(const Node* currentNode, const Node* endNode, TransportMode mode,
-    std::unordered_set<const Node*>& visited, std::vector<int>& route) {
-    visited.insert(currentNode);
-    route.push_back(currentNode->GetReference());
-
-    if (currentNode == endNode) {
-        return true;
-    }
-
-    for (const auto& pair : currentNode->GetNeighbours()) {
-        const Node* const neighbour = pair.first;
-        const TransportMode arcMode = pair.second.mode;
-
-        if (visited.count(neighbour) == 0 && IsValidMode(mode, arcMode)) {
-            if (FindRouteHelper(neighbour, endNode, mode, visited, route)) {
-                return true;
-            }
-        }
-    }
-
-    route.pop_back();
-    return false;
-}
-
-// method to find the shortest route between two nodes
-// utilises a priority queue to store nodes with their distances
+// method to find the shortest route between two nodes using BFS
+// utilises a queue to store nodes 
 // it then iterates through the nodes to find the shortest route
-// uses a altered version of djikstra's algorithm with weights of 1
+// if a valid route is found it outputs the references of the nodes
+// otherwise it outputs FAIL
 void Navigation::FindShortestRoute(const std::string& modeStr, int startRef, int endRef) {
-    m_outFile << "FindShortestRoute " << modeStr << " " << startRef << " " << endRef << std::endl;
+    m_outFile << "FindShortestRoute " << modeStr << " " << startRef << " " << endRef << "\n";
+
     const TransportMode mode = StringToTransportMode(modeStr);
 
     // find the start and end nodes based on their references
@@ -397,26 +392,16 @@ void Navigation::FindShortestRoute(const std::string& modeStr, int startRef, int
         const Node* const startNode = startIter->second;
         const Node* const endNode = endIter->second;
 
-        std::unordered_map<const Node*, int> distances;
         std::unordered_map<const Node*, const Node*> previous;
         std::unordered_set<const Node*> visited;
+        std::queue<const Node*> queue;
 
-        // initialize distances and previous nodes
-        for (const auto& pair : m_nodes) {
-            const Node* const node = pair.second;
-            distances[node] = std::numeric_limits<int>::max();
-            previous[node] = nullptr;
-        }
+        visited.insert(startNode);
+        queue.push(startNode);
 
-        distances[startNode] = 0;
-
-        // priority queue to store nodes with their distances
-        std::priority_queue<std::pair<int, const Node*>, std::vector<std::pair<int, const Node*>>, std::greater<std::pair<int, const Node*>>> pq;
-        pq.push(std::make_pair(0, startNode));
-
-        while (!pq.empty()) {
-            const Node* const currentNode = pq.top().second;
-            pq.pop();
+        while (!queue.empty()) {
+            const Node* const currentNode = queue.front();
+            queue.pop();
 
             if (currentNode == endNode) {
                 // reached the end node, construct the shortest route
@@ -424,45 +409,38 @@ void Navigation::FindShortestRoute(const std::string& modeStr, int startRef, int
                 const Node* node = endNode;
                 while (node != nullptr) {
                     route.push_back(node->GetReference());
-                    node = previous.at(node);
+                    node = previous[node];
                 }
                 std::reverse(route.begin(), route.end());
 
                 // output the shortest route
                 for (const int ref : route) {
-                    m_outFile << ref << std::endl;
+                    m_outFile << ref << "\n";
                 }
-                m_outFile << std::endl;
+                m_outFile << "\n";
                 return;
             }
-
-            if (visited.count(currentNode) > 0) {
-                continue;
-            }
-
-            visited.insert(currentNode);
 
             for (const auto& pair : currentNode->GetNeighbours()) {
                 const TransportMode arcMode = pair.second.mode;
                 if (IsValidMode(mode, arcMode)) {
                     const Node* const neighbour = pair.first;
-                    const int newDistance = distances.at(currentNode) + 1;
-                    if (newDistance < distances.at(neighbour)) {
-                        distances[neighbour] = newDistance;
+                    if (visited.count(neighbour) == 0) {
+                        visited.insert(neighbour);
                         previous[neighbour] = currentNode;
-                        pq.push(std::make_pair(newDistance, neighbour));
+                        queue.push(neighbour);
                     }
                 }
             }
         }
 
         // no valid route found
-        m_outFile << "FAIL" << std::endl;
-        m_outFile << std::endl;
+        m_outFile << "FAIL" << "\n";
+        m_outFile << "\n";
     }
     else {
         // start or end node not found
-        m_outFile << "FAIL" << std::endl;
-        m_outFile << std::endl;
+        m_outFile << "FAIL" << "\n";
+        m_outFile << "\n";
     }
 }
