@@ -20,7 +20,7 @@ int main(int, char**) {
 
 	// Build Navigation
 	Navigation nav;
-	auto start = high_resolution_clock::now();
+	const auto start = high_resolution_clock::now();
 	if (nav.BuildNetwork("Places.csv", "Links.csv")) {
 		std::cout << std::fixed << std::setprecision(1) << "BuildNetwork - " 
 			<< duration_cast<microseconds>(high_resolution_clock::now() - start).count()
@@ -35,7 +35,6 @@ int main(int, char**) {
 	while (!fin.eof())	{
 		std::string command;
 		std::getline(fin, command);
-
 		const auto start = high_resolution_clock::now();
 		if (nav.ProcessCommand(command)) {
 			std::cout << command << std::fixed << std::setprecision(1) << " - " 

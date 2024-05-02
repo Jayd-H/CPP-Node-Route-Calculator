@@ -6,92 +6,136 @@
 #include <cmath>
 #include <unordered_set>
 
-// enum already assignes int values, however, i am doing it explicitly for better readability
-enum TransportMode { Foot = 0, Bike = 1, Car = 2, Bus = 3, Rail = 4, Ship = 5 };
+// PARASOFT WILL GIVE WARNINGS WITH THIS FILE, IGNORE IT
+// "Member function '[function]' returns handles to member data: [data]"
+// parasoft wants to pass by value for better encapsulation
+// but we want to pass by reference as its more performant
+
+enum class TransportMode { Foot = 0, Bike = 1, Car = 2, Bus = 3, Rail = 4, Ship = 5 };
 
 class Node;
 
-class Arc {
-public:
-    Node* endNode;
+struct Arc {
+    const Node* endNode;
     double distance;
     TransportMode mode;
 
-    Arc() : endNode(nullptr), distance(0), mode(Foot) {}
+    Arc() = default;
 
-    Arc(Node* endNode, double distance, TransportMode mode)
-        : endNode(endNode), distance(distance), mode(mode) {}
-};
+    Arc(const Node* p_endNode, double p_distance, TransportMode p_mode)
+        : endNode(p_endNode), distance(p_distance), mode(p_mode) {}
 
-class Node {
-public:
-    int reference;
-    std::string name;
-    double x;
-    double y;
-    std::unordered_map<Node*, Arc> neighbours;
+    // Copy constructor
+    Arc(const Arc& other) = default;
 
-    Node(int ref, const std::string& name, double x, double y)
-        : reference(ref), name(name), x(x), y(y) {}
+    // Assignment operator
+    Arc& operator=(const Arc& other) {
+        if (this == &other) {
+            return *this;
+        }
 
-    inline void Addneighbour(Node* neighbour, double distance, TransportMode mode) {
-        neighbours[neighbour] = Arc(neighbour, distance, mode);
+        endNode = other.endNode;
+        distance = other.distance;
+        mode = other.mode;
+        return *this;
     }
+
+    // Destructor
+    ~Arc() = default;
 };
 
-class Navigation {
-    std::ofstream _outFile;
-    std::unordered_map<int, Node*> nodes;
+class Node final {
+private:
+    std::unordered_map<const Node*, Arc> m_neighbours;
+    std::string m_name;
+    const double m_x;
+    const double m_y;
+    const int m_reference;
 
 public:
-	// Constructor and Destructor
+    Node(int ref, const std::string& name, double x, double y)
+        : m_neighbours(),
+        m_name(name),
+        m_x(x),
+        m_y(y),
+        m_reference(ref) {}
+
+    Node(const Node&) = delete;
+    Node& operator=(const Node&) = delete;
+
+    void AddNeighbour(const Node* neighbour, double distance, TransportMode mode) {
+        m_neighbours[neighbour] = Arc(neighbour, distance, mode);
+    }
+
+    int GetReference() const { return m_reference; }
+    double GetX() const { return m_x; }
+    double GetY() const { return m_y; }
+
+	// ignore parasoft warnings
+    const std::string& GetName() const { return m_name; }
+    const std::unordered_map<const Node*, Arc>& GetNeighbours() const { return m_neighbours; }
+	// ignore parasoft warnings
+};
+
+class Navigation final {
+private:
+    std::ofstream m_outFile;
+    std::unordered_map<int, Node*> m_nodes;
+
+public:
     Navigation();
     ~Navigation();
 
-	// Member functions
+    Navigation(const Navigation&) = delete;
+    Navigation& operator=(const Navigation&) = delete;
+
     bool BuildNetwork(const std::string& fileNamePlaces, const std::string& fileNameLinks);
     bool ProcessCommand(const std::string& commandString);
 
+    // ignore parasoft warnings
+    const std::unordered_map<int, Node*>& GetNodes() const { return m_nodes; }
+    const std::ofstream& GetOutFile() const { return m_outFile; }
+	// ignore parasoft warnings
+
 private:
-    inline TransportMode StringToTransportMode(const std::string& modeStr) {
+    TransportMode StringToTransportMode(const std::string& modeStr) const {
         if (modeStr == "Foot")
-            return Foot;
+            return TransportMode::Foot;
         else if (modeStr == "Bike")
-            return Bike;
+            return TransportMode::Bike;
         else if (modeStr == "Car")
-            return Car;
+            return TransportMode::Car;
         else if (modeStr == "Bus")
-            return Bus;
+            return TransportMode::Bus;
         else if (modeStr == "Rail")
-            return Rail;
+            return TransportMode::Rail;
         else if (modeStr == "Ship")
-            return Ship;
+            return TransportMode::Ship;
         else
-            return Foot; // Default mode
+            return TransportMode::Foot;
     }
 
-	// THIS CALCULATES SQUARED DISTANCE, WHEN DISPLAYING DISTANCE, USE SQRT
-    inline double CalculateDistance(const Node* startNode, const Node* endNode) {
-        double dx = endNode->x - startNode->x;
-        double dy = endNode->y - startNode->y;
+    double CalculateDistance(const Node* startNode, const Node* endNode) const {
+        const double dx = endNode->GetX() - startNode->GetX();
+        const double dy = endNode->GetY() - startNode->GetY();
         return dx * dx + dy * dy;
     }
 
-    inline bool IsValidMode(TransportMode mode, TransportMode neighbourMode) {
-        if (mode == Rail || mode == Ship) {
+    bool IsValidMode(TransportMode mode, TransportMode neighbourMode) const {
+        if (mode == TransportMode::Rail || mode == TransportMode::Ship) {
             return mode == neighbourMode;
         }
-        else if (mode == Bus) {
-            return neighbourMode == Bus || neighbourMode == Rail || neighbourMode == Ship;
+        else if (mode == TransportMode::Bus) {
+            return neighbourMode == TransportMode::Bus || neighbourMode == TransportMode::Rail || neighbourMode == TransportMode::Ship;
         }
-        else if (mode == Car) {
-            return neighbourMode == Car || neighbourMode == Bus || neighbourMode == Ship;
+        else if (mode == TransportMode::Car) {
+            return neighbourMode == TransportMode::Car || neighbourMode == TransportMode::Bus || neighbourMode == TransportMode::Ship;
         }
-        else if (mode == Bike) {
-            return neighbourMode == Bike || neighbourMode == Foot;
+        else if (mode == TransportMode::Bike) {
+            return neighbourMode == TransportMode::Bike || neighbourMode == TransportMode::Foot;
         }
         else {
-            return true; // Foot can use any mode
+            return true;
         }
     }
 
@@ -102,6 +146,6 @@ private:
     void CheckRoute(const std::string& modeStr, const std::vector<int>& nodeRefs);
     void FindRoute(const std::string& modeStr, int startRef, int endRef);
     void FindShortestRoute(const std::string& modeStr, int startRef, int endRef);
-    bool FindRouteHelper(Node* currentNode, Node* endNode, TransportMode mode,
-        std::unordered_set<Node*>& visited, std::vector<int>& route);
+    bool FindRouteHelper(const Node* currentNode, const Node* endNode, TransportMode mode,
+        std::unordered_set<const Node*>& visited, std::vector<int>& route);
 };
