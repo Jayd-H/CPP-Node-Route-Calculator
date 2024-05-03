@@ -349,3 +349,4 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 /500083_ACW_Template/Output.txt
+/500083_ACW_Template/.cpptest
