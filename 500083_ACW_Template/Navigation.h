@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <cmath>
 #include <unordered_set>
+#include <sstream>
+    
 
 // PARASOFT WILL GIVE WARNINGS WITH THIS FILE, IGNORE IT
 // "Member function '[function]' returns handles to member data: [data]"
@@ -91,6 +93,8 @@ private:
 	// member variables
     std::ofstream m_outFile;
     std::unordered_map<int, Node*> m_nodes;
+    std::ostringstream m_maxDistStream;
+    std::ostringstream m_maxLinkStream;
 
 public:
 	// constructor and destructor

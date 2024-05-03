@@ -12,7 +12,9 @@
 #include "Utility.h"
 
 // constructor to initialise the output file
-Navigation::Navigation() : m_outFile("Output.txt") {
+Navigation::Navigation()
+    : m_outFile("Output.txt")
+{
 }
 
 // destructor to delete all nodes in the map
@@ -91,7 +93,7 @@ bool Navigation::BuildNetwork(const std::string& fileNamePlaces, const std::stri
 
     std::string line;
 
-	// places file
+    // places file
     while (std::getline(finPlaces, line)) {
         std::string name;
         int reference;
@@ -104,13 +106,13 @@ bool Navigation::BuildNetwork(const std::string& fileNamePlaces, const std::stri
         iss.ignore();
         iss >> longitude;
 
-		// convert latitude and longitude to UTM coordinates
+        // convert latitude and longitude to UTM coordinates
         double x, y;
         Utility::LLtoUTM(latitude, longitude, x, y);
         m_nodes[reference] = new Node(reference, name, x, y);
     }
 
-	// links file
+    // links file
     while (std::getline(finLinks, line)) {
         int startRef, endRef;
         std::string modeStr;
@@ -121,92 +123,80 @@ bool Navigation::BuildNetwork(const std::string& fileNamePlaces, const std::stri
         iss.ignore();
         std::getline(iss, modeStr);
 
-		// find the start and end nodes based on their references
+        // find the start and end nodes based on their references
         Node* const startNode = m_nodes[startRef];
         Node* const endNode = m_nodes[endRef];
 
-		// get the transport mode
+        // get the transport mode
         const TransportMode mode = StringToTransportMode(modeStr);
 
-		// calculate the distance between the nodes
+        // calculate the distance between the nodes
         const double distance = CalculateDistance(startNode, endNode);
 
         startNode->AddNeighbour(endNode, distance, mode);
         endNode->AddNeighbour(startNode, distance, mode);
     }
 
-    return true;
-}
+    // calculate maximum distance between all pairs of nodes
+    double maxDistance = 0.0;
+    const Node* maxDistStartNode = nullptr;
+    const Node* maxDistEndNode = nullptr;
 
-// method to calculate the maximum distance between two nodes
-// it iterates through every pair of nodes and calculates the distance between them
-// it stores the maximum distance and the nodes that have this distance
-// then outputs the result
-void Navigation::FindMaxDist() {
-    double maxSquaredDistance = 0.0;
-    const Node* maxStartNode = nullptr;
-    const Node* maxEndNode = nullptr;
-
-    // iterate through all nodes
-    auto current = m_nodes.begin();
-    while (current != m_nodes.end()) {
-        const Node* const startNode = current->second;
-        auto next = std::next(current);
-
-        // calculate distance to all other nodes that come after the current node
-        while (next != m_nodes.end()) {
-            const Node* const endNode = next->second;
-
-            // calculate the squared distance between the nodes
-            const double squaredDistance = CalculateDistance(startNode, endNode);
-
-            // update the maximum squared distance and nodes
-            if (squaredDistance > maxSquaredDistance) {
-                maxSquaredDistance = squaredDistance;
-                maxStartNode = startNode;
-                maxEndNode = endNode;
+    for (const auto& startPair : m_nodes) {
+        const Node* const startNode = startPair.second;
+        for (const auto& endPair : m_nodes) {
+            if (startPair.first < endPair.first) {
+                const Node* const endNode = endPair.second;
+                const double distance = CalculateDistance(startNode, endNode);
+                if (distance > maxDistance) {
+                    maxDistance = distance;
+                    maxDistStartNode = startNode;
+                    maxDistEndNode = endNode;
+                }
             }
-
-            ++next;
         }
-
-        ++current;
     }
 
-    // output
-    if (maxStartNode != nullptr && maxEndNode != nullptr) {
-        m_outFile << "MaxDist" << "\n";
-        m_outFile << maxStartNode->GetName() << "," << maxEndNode->GetName() << "," << std::fixed << std::setprecision(3) << sqrt(maxSquaredDistance) << '\n' << '\n';
+    // prepare output stream for max distance
+    if (maxDistStartNode != nullptr && maxDistEndNode != nullptr) {
+        m_maxDistStream << "MaxDist" << "\n";
+        m_maxDistStream << maxDistStartNode->GetName() << "," << maxDistEndNode->GetName() << "," << std::fixed << std::setprecision(3) << sqrt(maxDistance) << '\n';
+        m_maxLinkStream << "\n";
     }
-}
 
-// method to calculate the maximum link between two nodes
-// it iterates through every pair of neighboured nodes to calculate distance between
-void Navigation::FindMaxLink() {
-    double maxSquaredDistance = 0.0;
-    int maxStartRef = 0;
-    int maxEndRef = 0;
+    // calculate maximum link distance
+    double maxLinkDistance = 0.0;
+    int maxLinkStartRef = 0;
+    int maxLinkEndRef = 0;
 
-    // iterate through all pairs of nodes
     for (const auto& startPair : m_nodes) {
         const Node* const startNode = startPair.second;
         for (const auto& endPair : startNode->GetNeighbours()) {
-
             const double distance = endPair.second.distance;
-
-            if (distance > maxSquaredDistance) {
+            if (distance > maxLinkDistance) {
                 const Node* const endNode = endPair.first;
-                maxSquaredDistance = distance;
-                maxStartRef = startNode->GetReference();
-                maxEndRef = endNode->GetReference();
+                maxLinkDistance = distance;
+                maxLinkStartRef = startNode->GetReference();
+                maxLinkEndRef = endNode->GetReference();
             }
         }
     }
 
-    // output
-    m_outFile << "MaxLink" << "\n";
-    m_outFile << maxStartRef << "," << maxEndRef << "," << std::fixed << std::setprecision(3) << sqrt(maxSquaredDistance) << "\n";
-    m_outFile << "\n";
+    m_maxLinkStream << "MaxLink" << "\n";
+    m_maxLinkStream << maxLinkStartRef << "," << maxLinkEndRef << "," << std::fixed << std::setprecision(3) << sqrt(maxLinkDistance) << "\n";
+    m_maxLinkStream << "\n";
+
+    return true;
+}
+
+// method to output the stored output stream of maxdist
+void Navigation::FindMaxDist() {
+    m_outFile << m_maxDistStream.str();
+}
+
+// method to output the stored output stream of maxlink
+void Navigation::FindMaxLink() {
+    m_outFile << m_maxLinkStream.str();
 }
 
 // method to find the distance between two nodes
@@ -339,7 +329,7 @@ void Navigation::FindRoute(const std::string& modeStr, int startRef, int endRef)
         visited.insert(startNode);
 
         while (!queue.empty()) {
-            const Node* currentNode = queue.front();
+            const Node* const currentNode = queue.front();
             queue.pop();
 
             route.push_back(currentNode->GetReference());
