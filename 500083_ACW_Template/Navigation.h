@@ -13,6 +13,7 @@
 // parasoft wants to pass by value for better encapsulation
 // but we want to pass by reference as its more performant
 
+// Transport mode enum class, I have explicitly set the values for readability sake, but it is not necessary
 enum class TransportMode { Foot = 0, Bike = 1, Car = 2, Bus = 3, Rail = 4, Ship = 5 };
 
 class Node;
@@ -71,7 +72,7 @@ public:
     Node& operator=(const Node&) = delete;
 
 	// method to add neighbour to node with distance and transport mode
-    void AddNeighbour(const Node* neighbour, double distance, TransportMode mode) {
+    inline void AddNeighbour(const Node* neighbour, double distance, TransportMode mode) {
         m_neighbours[neighbour] = Arc(neighbour, distance, mode);
     }
 
