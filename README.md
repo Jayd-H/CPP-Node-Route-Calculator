@@ -456,7 +456,7 @@ public:
 ```
 After my arc, I have defined my node class. Each node has an unordered_map of node pointers with arcs, this map is for the neighbours to that node. Each node also has a name, two x and y coordinates, and a unique reference. The node class also features getters for these values, along with a short inline AddNeighbour function which adds neighbours to the nodes' map.
 
-**Naviation Class**
+**Navigation Class**
 ```cpp
 // navigation class
 // this class will be used to build the network and process commands
@@ -760,11 +760,11 @@ bool Navigation::BuildNetwork(const std::string& fileNamePlaces, const std::stri
 ```
 The BuildNetwork function is responsible for parsing the data from the two csv files, places and links, and creating the datatype that will store them all. It consists of 3 distinct parts, the building of the network, the calculation of the maximum distance between two places, and the calculation of the longest link in the network.
 
-After processes all places as nodes and all links as arcs, the function then goes onto calculate the two nodes furthest apart from eachother.  It does this by first initialising two Node pointers as a pair and iterating through the map, calculating the distance of each pair. After it has found the maximum distance, it saves the value along with the accompanying pair of nodes for use later.
+After processing all places as nodes and all links as arcs, the function then goes onto calculate the two nodes furthest apart from eachother.  It does this by first initialising two Node pointers as a pair and iterating through the map, calculating the distance of each pair. After it has found the maximum distance, it saves the value along with the accompanying pair of nodes for use later.
 
 Once this has finished, it begins trying to find the longest arc (link) between two nodes. The logic is similar to the max distance section, however, this time the pair only contains neighbouring connections. After it has found the longest arc, it saves the values to be used later. I experimented with altering this logic to instead iterate through all the arcs, as each arc object contains its distance, therefore there will no extra calculations being made. This unfortunately did not end up being suitable with the current data types implementation, as you cannot easily get both associated nodes of an arc from the arc object alone, only the endNode. Therefore if I wanted to take this approach, I would need to modify the arc object to also include a member variable for the a startNode reference, which would produce extra performance overhead when using an arc for other operations. I personally did not see this trade-off as a beneficial in my program, not only because I wanted to keep the objects I created as minimal as possible, but mainly due to the fact that the MaxLink code only gets ran once, whereas there will be many more operations regarding arcs that do not need this extra variable. I thought that in a real world setting, the MaxLink will only be ran one and then potentially cached until the data changes, but the other commands will be ran multiple times with many variations. I think I made the right decision, however, there could be something that I am missing that I am simply too inexperienced to know.
 
-After it has gathered the MaxDist and MaxLink data, it creates two respective output streams and stores them in the navigation class for future use for when the commands get ran. Admittedly I did this so the results for the timing of both MaxLink and MaxDist would seem greatly reduced after hearing other students advice and finding out this was a common practice to the assignment. It still feels a bit cheaty though.
+After it has gathered the MaxDist and MaxLink data, it creates two respective output streams and stores them in the navigation class for future use for when the commands are run. Admittedly I did this so the results for the timing of both MaxLink and MaxDist would seem greatly reduced after hearing other students advice and finding out this was a common practice to the assignment. It still feels a bit cheaty though.
 
 **FindMaxDist() & FindMaxLink()**
 ```cpp
@@ -843,7 +843,7 @@ void Navigation::FindNeighbour(int nodeRef) {
 }
 ```
 
-The FindNeighbour takes the reference to a node and simply returns the stored neighbours references to be outputted to the file. This was the main reason behind my decision to store neighbours of a node directly in a node object. 
+The FindNeighbour takes the reference to a node and simply returns the stored neighbours' references to be outputted to the file. This was the main reason behind my decision to store neighbours of a node directly in a node object. 
 
 **CheckRoute(...)**
 ```cpp
@@ -896,7 +896,7 @@ void Navigation::CheckRoute(const std::string& modeStr, const std::vector<int>& 
     m_outFile << "\n";
 }
 ```
-The CheckRoute method is responsible for determining if a route is valid between multiple nodes with a given transport mode. It first finds the start and end nodes based on their references in the map, then checks if theres a valid connection between the nodes by finding the endNode in the startNode's neighbours. If found, it checks if the associated arc is valid with an inline method in the header file. If valid, it adds to the output stream and repeats the process until failure or until the route has been fully checked.
+The CheckRoute method is responsible for determining if a route is valid between multiple nodes with a given transport mode. It first finds the start and end nodes based on their references in the map, then checks if there's a valid connection between the nodes by finding the endNode in the startNode's neighbours. If found, it checks if the associated arc is valid with an inline method in the header file. If valid, it adds to the output stream and repeats the process until failure or until the route has been fully checked.
 
 **FindRoute(...)**
 ```cpp
@@ -1036,7 +1036,7 @@ void Navigation::FindShortestRoute(const std::string& modeStr, int startRef, int
     }
 }
 ```
-The FindShortestRoute method is similar to FindRoute but uses BFS to find the shortest route between two nodes. It starts by finding the start and end nodes based on their references in the map. It then initialises a queue, visited set, and a map to store the previous node in the shortest path. The start node is pushed into the queue and added to the visited set. The method enters a loop that continues until the queue is empty. In each iteration, it pops a node from the queue. If the current node is the end node, the shortest route has been found. THe method then constructs the shortest route by backtracking from the end node using the previous node map and outputs the references of the nodes in the route. If the current node is not the end node, it iterates through its neighbours, checking if they are unvisited and if the transport mode is valid. If a neighbour satisfies these conditions, it is pushed into the queue, added to the visited set, and its previous node is recorded in the map. If the queue becomes empty and the end node is not reached, no valid route exists.
+The FindShortestRoute method is similar to FindRoute but uses BFS to find the shortest route between two nodes. It starts by finding the start and end nodes based on their references in the map. It then initialises a queue, visited set, and a map to store the previous node in the shortest path. The start node is pushed into the queue and added to the visited set. The method enters a loop that continues until the queue is empty. In each iteration, it pops a node from the queue. If the current node is the end node, the shortest route has been found. The method then constructs the shortest route by backtracking from the end node using the previous node map and outputs the references of the nodes in the route. If the current node is not the end node, it iterates through its neighbours, checking if they are unvisited and if the transport mode is valid. If a neighbour satisfies these conditions, it is pushed into the queue, added to the visited set, and its previous node is recorded in the map. If the queue becomes empty and the end node is not reached, no valid route exists.
 
 ---
 ### Timings/Performance
@@ -1068,5 +1068,16 @@ Another fairly large improvement to my times was in my CalculateDistance member 
 Originally, I was using the same algorithm for both my FindRoute and FindShortestRoute methods. This was proving excessive for the FindRoute method, so instead of them both using BFS, I implemented DFS for FindRoute. This also seemed to improve the FindRoute times.
 
 ---
-### Reflection
+### Reflection/Conclusion
 
+I do not want this section to just be a reflection on this lab, I also want to include a small reflection on this module as a whole.
+
+Throughout this lab I have definitely furthered my skills not only with C++, but wholly as a programmer too. It was a very great exercise seeing all of the knowledge I gathered along this module come to a final portmanteau of a coding project. I think the task that was given to us served greatly in not only cementing the things taught, but also seeing them in a practiced environment. Overall, I am pleased with the solution I have provided, a solution I wholeheartedly believe I would have come nowhere close to even one or two months prior. As previously mentioned, I am still aware of my shortcomings with experience in C++ so there are most likely a lot of things I could have executed better if I had the extended knowledge of someone with more years in the field. However, as it currently stands, I believe I have provided a nicely built solution to a fairly difficult problem, which ultimately I am proud of.
+
+I still have a long way to go in terms of both honing my logical thinking and C++ skills but these labs, and by extension this final assignment, I think has really allowed me to almost 'poke around' with the language to an extent I never have had the motivation to before. By doing this, I have really grown to like C++ and a lot of valuable elements it provides. Despite having a few grievances with the language, namely CMAKE files (but I am certain I will fully get the hang of them eventually), I am very excited to continue my journey with the language going forward.
+
+Additionally, this assignment has given me valuable experience in analysing the performance of my code and making optimisations accordingly. Utilising visual studios profiling tools to identify performance bottlenecks and then experimenting with different approaches to address them has been a very rewarding process for me. After all, it is satisfying to see measurable improvements in execution times as a results of using these tools and targeting optimisations.
+
+Looking back, I realise that my approach to the data structure could have benefitted from even more forethought and planning. While I am happy with my solution, I cannot help but wonder about alternative designs that could potentially lead to further performance gains or cleaner code structure. This is where additional experience and knowledge of C++ would undoubtedly prove beneficial. 
+
+In conclusion, this assignment has been a challenging yet rewarding experience that has allowed me to apply the concept and techniques leant throughout this module. It has deepened my appreciation for the intricacies of C++ and has motivated me to continue expanding my skills in this powerful language. I look forward to tackling more complex problems and further refining my abilities as a programmer. This module has evidently provided a solid foundation, and I am excited about my future endeavours with the language.
