@@ -1068,6 +1068,14 @@ Another fairly large improvement to my times was in my CalculateDistance member 
 Originally, I was using the same algorithm for both my FindRoute and FindShortestRoute methods. This was proving excessive for the FindRoute method, so instead of them both using BFS, I implemented DFS for FindRoute. This also seemed to improve the FindRoute times.
 
 ---
+### Parasoft Results
+Here is the image provided by parasoft from the HTML report, showing the amount of warnings received.
+
+![Parasoft Results](ParasoftReport/standard_summary_05-03-24_01-18-19.jpeg)
+
+Please note that the two 3 severity findings are from main.cpp. The other four 5 severity warnings are related to parasoft wanting to pass by value rather than reference for better encapsulation, something I purposely chose to ignore for performance sake. I am not entirely sure if this decision makes a substantial difference, and if just listening to parasoft would have been the right move, but nevertheless do note that these are intentional. The code has relevant comments related to these warnings for where they appear. Using Parasoft on such a large project really proved beneficial and gave me more confidence in writing cleaner, more readable code.
+
+---
 ### Reflection/Conclusion
 
 I do not want this section to just be a reflection on this lab, I also want to include a small reflection on this module as a whole.
