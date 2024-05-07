@@ -1,5 +1,5 @@
-﻿## Advanced Programming - Lab I (Final Lab)
-### Question
+﻿# Lab I (Final Lab)
+## Question
 ---
 
 The objective of this final lab is to implement, exercise and assess the performance of data structures that represent a transport network and support route-finding and evaluation.  A network is a collection of nodes and arcs so, in the context of a transport network the nodes will correspond to road/rail junctions; towns/cities/villages; bus/rail stations; air/sea ports, etc., while the network arcs will be road/rail route segments or air corridors/sea lanes as appropriate.
@@ -339,7 +339,7 @@ Create a new chapter (Lab I) in your lab book (maximum 2000 words), which contai
  - Performance critique:  Explain the process you followed to improve performance.  Was it effective? Describe any changes you made to the data structure design or algorithms that improved performance.  What did you learn about C++ optimization. 
 
 ---
-### Answer
+## Answer
 ---
 
 ### Planning
